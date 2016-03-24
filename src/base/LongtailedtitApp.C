@@ -4,6 +4,10 @@
 #include "ModulesApp.h"
 #include "MooseSyntax.h"
 
+#include "FiniteStrainPlasticBase2.h"
+#include "FiniteStrainCriticalStateMohrCoulomb.h"
+#include "FiniteStrainMohrCoulomb2.h"
+
 template<>
 InputParameters validParams<LongtailedtitApp>()
 {
@@ -45,6 +49,8 @@ extern "C" void LongtailedtitApp__registerObjects(Factory & factory) { Longtaile
 void
 LongtailedtitApp::registerObjects(Factory & factory)
 {
+    registerMaterial(FiniteStrainCriticalStateMohrCoulomb);
+    registerMaterial(FiniteStrainMohrCoulomb2);
 }
 
 // External entry point for dynamic syntax association
