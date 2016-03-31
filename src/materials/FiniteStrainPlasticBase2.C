@@ -155,8 +155,8 @@ FiniteStrainPlasticBase2::computeQpStress()
 
   if (!return_successful)
   {
-    _console << "After making " << num_subdivisions << " subdivisions of the strain increment with L2norm " << _strain_increment[_qp].L2norm() << ",\n";
-    _console << "the returnMap algorithm failed. Move back to old values";
+    _console << "After making " << num_subdivisions << " subdivisions of the strain increment with L2norm " << _strain_increment[_qp].L2norm() << "\n";
+    _console << "the returnMap algorithm failed. Move back to old values" << "\n";
 
     //_fspb_debug_stress = _stress_old[_qp];
     //_fspb_debug_pm.assign(numberOfYieldFunctions(), 1); // this is chosen arbitrarily - please change if a more suitable value occurs to you!

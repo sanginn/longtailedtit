@@ -118,6 +118,18 @@
     order = CONSTANT
     family = MONOMIAL
   [../]
+  [./void_ratio]
+    order = CONSTANT
+    family = MONOMIAL
+  [../]
+  [./dilatancy_angle]
+    order = CONSTANT
+    family = MONOMIAL
+  [../]
+  [./shear_modulus]
+    order = CONSTANT
+    family = MONOMIAL
+  [../]
 []
 
 [AuxKernels]
@@ -195,6 +207,24 @@
     property = plastic_yield_function
     variable = yield_fcn
   [../]
+  [./void_ratio_auxk]
+    type = MaterialRealAux
+    index = 0
+    property = mc_void_ratio
+    variable = void_ratio
+  [../]
+  [./dilatancy_angle_auxk]
+    type = MaterialRealAux
+    index = 0
+    property = mc_dilatancy_angle
+    variable = dilatancy_angle
+  [../]
+  [./shear_modulus_auxk]
+    type = MaterialRealAux
+    index = 0
+    property = mc_shear_modulus
+    variable = shear_modulus
+  [../]
 []
 
 [Functions]
@@ -214,16 +244,23 @@
 
 [Materials]
   [./mc]
-    type = FiniteStrainMohrCoulomb2
+    type = FiniteStrainCriticalStateMohrCoulomb
     block = 0
     disp_x = disp_x
     disp_y = disp_y
     initial_void_ratio = 0.74618
+    gamma = 0.934
+    lambda = 0.019
+    xi = 0.7
+    p_ref = 100
+    psi_0 = 2.7
+    fixed_elastic_moduli = true
+    c_g = 125
+    poisson_ratio = 0.25
     fill_method = symmetric_isotropic
-    C_ijkl = '10e4 10e4'
+    C_ijkl = '3.2e4 3.2e4'
     mc_cohesion = 0
     mc_friction_angle = 31.5
-    mc_dilation_angle = 3.15
     mc_tip_smoother = 0
     yield_function_tolerance = 1E-8
     ep_plastic_tolerance = 1
@@ -266,8 +303,8 @@
   type = Transient
   end_time = 4.0
   solve_type = LINEAR
-  nl_abs_tol = 1e-3
-  dt = 0.00005  
+  nl_abs_tol = 1e-4
+  dt = 0.00005
   [./TimeIntegrator]
     type = ExplicitMidpoint
   [../]
@@ -284,4 +321,3 @@
   tecplot = true
   csv = true
 []
-

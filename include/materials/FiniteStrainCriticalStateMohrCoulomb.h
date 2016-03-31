@@ -29,6 +29,7 @@ public:
 
 protected:
   virtual void initQpStatefulProperties();
+  virtual void computeQpElasticityTensor();
 
   /// initial void registration
   Real _initial_void_ratio;
@@ -110,6 +111,9 @@ protected:
 
   /// Dilatancy angle
   MaterialProperty<Real> & _dilatancy_angle;
+
+  /// Shear modulus
+  MaterialProperty<Real> & _shear_modulus;
 
   /**
    * The number of internal parameters (should return 0 for perfect plasticity)
@@ -240,7 +244,7 @@ protected:
   RankTwoTensor df_dsig(const RankTwoTensor & stress, const Real sin_angle);
 
   // set elasticity tensor from given stress and void ratio
-  RankFourTensor get_elasticity_tensor(const RankTwoTensor & stress, const Real void_ratio);
+  ElasticityTensorR4 get_elasticity_tensor(const RankTwoTensor & stress, const Real void_ratio);
 
 };
 

@@ -1,6 +1,6 @@
 [Mesh]
   type = FileMesh # Can generate simple lines, rectangles and rectangular prisms
-  file = mesh-q9-fine.msh
+  file = mesh-q9.msh
   boundary_id = '1 2 3 4 5 6 7 8 9' # Assign names to boundaries to make things clearer
   boundary_name = 'b1 b2 b3 b4 b5 b6 b7 b8 b9'
 []
@@ -51,18 +51,18 @@
     boundary = 'b7 b8'
     value = 0
   [../]
-  [./push_x]
-    type = PresetBC
-    variable = disp_x
-    boundary = b6
-    value = 0
-  [../]
-  [./push_y]
-    type = FunctionPresetBC
-    variable = disp_y
-    boundary = b6
-    function = disp_footing
-  [../]
+  #[./push_x]
+  #  type = PresetBC
+  #  variable = disp_x
+  #  boundary = b6
+  #  value = 0
+  #[../]
+  #[./push_y]
+  #  type = FunctionPresetBC
+  #  variable = disp_y
+  #  boundary = b6
+  #  function = disp_footing
+  #[../]
 []
 
 [AuxVariables]
@@ -200,11 +200,11 @@
 [Functions]
   [./sig_ini_v]
     type = ParsedFunction
-    value = 15*y # initial stress that should result from the weight force
+    value = 20*y # initial stress that should result from the weight force
   [../]
   [./sig_ini_h]
     type = ParsedFunction
-    value = 7.5*y # some arbitrary xx and yy stress that should not affect the result
+    value = 10*y # some arbitrary xx and yy stress that should not affect the result
   [../]
   [./disp_footing]
     type = ParsedFunction
@@ -218,9 +218,8 @@
     block = 0
     disp_x = disp_x
     disp_y = disp_y
-    initial_void_ratio = 0.74618
     fill_method = symmetric_isotropic
-    C_ijkl = '10e4 10e4'
+    C_ijkl = '3.2e4 3.2e4'
     mc_cohesion = 0
     mc_friction_angle = 31.5
     mc_dilation_angle = 31.5
@@ -242,15 +241,35 @@
     type = GenericConstantMaterial
     block = 0
     prop_names = density
-    prop_values = 1.529051 # in ton/m^3
+    prop_values = 2.038735984 # in ton/m^3
   [../]
 []
 
 [Postprocessors]
-  [./react_y_bottom]
+  [./react_y_contact]
     type = NodalSum
     variable = force_y
     boundary = b6
+  [../]
+  [./react_y_bottom]
+    type = NodalSum
+    variable = force_y
+    boundary = 'b1 b2'
+  [../]
+  [./react_y_right]
+    type = NodalSum
+    variable = force_y
+    boundary = 'b3 b4'
+  [../]
+  [./react_y_top]
+    type = NodalSum
+    variable = force_y
+    boundary = 'b5 b6'
+  [../]
+  [./react_y_left]
+    type = NodalSum
+    variable = force_y
+    boundary = 'b7 b8'
   [../]
 []
 
@@ -267,7 +286,7 @@
   end_time = 2.5
   solve_type = LINEAR
   nl_abs_tol = 1e-3
-  dt = 0.00005  
+  dt = 0.0002
   [./TimeIntegrator]
     type = ExplicitMidpoint
   [../]
@@ -278,7 +297,7 @@
 []
 
 [Outputs]
-  interval = 20
+  interval = 5
   console = true
   exodus = true
   tecplot = true

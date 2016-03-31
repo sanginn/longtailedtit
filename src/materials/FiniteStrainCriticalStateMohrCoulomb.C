@@ -66,7 +66,8 @@ FiniteStrainCriticalStateMohrCoulomb::FiniteStrainCriticalStateMohrCoulomb(const
     _mc_min_principal(declareProperty<Real>("mc_min_principal_stress")),
     _yf(declareProperty<Real>("mc_yield_function")),
     _void_ratio(declareProperty<Real>("mc_void_ratio")),
-    _dilatancy_angle(declareProperty<Real>("mc_dilatancy_angle"))
+    _dilatancy_angle(declareProperty<Real>("mc_dilatancy_angle")),
+    _shear_modulus(declareProperty<Real>("mc_shear_modulus"))
 {
   if (_lode_cutoff < 0)
     mooseError("mc_lode_cutoff must not be negative");
@@ -87,6 +88,21 @@ void FiniteStrainCriticalStateMohrCoulomb::initQpStatefulProperties()
   _yf[_qp] = 0.0;
   _void_ratio[_qp] = _initial_void_ratio;
   FiniteStrainPlasticBase2::initQpStatefulProperties();
+}
+
+void FiniteStrainCriticalStateMohrCoulomb::computeQpElasticityTensor()
+{
+  // update elasticity tensor if elastic moduli are not fixed
+  if (_fixed_elastic_moduli == false)
+  {
+    _elasticity_tensor[_qp] = get_elasticity_tensor(_stress[_qp], _void_ratio[_qp]);
+  }
+  else
+  {
+    _elasticity_tensor[_qp] = _Cijkl;
+  }
+
+  _Jacobian_mult[_qp] = _elasticity_tensor[_qp];
 }
 
 void
@@ -111,10 +127,6 @@ FiniteStrainCriticalStateMohrCoulomb::postReturnMap()
   Real p = -1.0 * _stress[_qp].trace()/3.0;
   p = std::max(p, 0.0);
   _dilatancy_angle[_qp] = _psi_0 * (_gamma - _lambda*std::pow(p/_p_ref, _xi) - _void_ratio[_qp]) * 180.0 / M_PI;
-
-  // update elasticity tensor if elastic moduli are not fixed
-  if (_fixed_elastic_moduli == false)
-    _elasticity_tensor[_qp] = get_elasticity_tensor(_stress[_qp], _void_ratio[_qp]);
 
   // Record the maximum principal stress
   std::vector<Real> eigvals;
@@ -446,16 +458,20 @@ FiniteStrainCriticalStateMohrCoulomb::dabbo(const Real sin3lode, const Real /*si
 
 
 // set elasticity tensor from given stress and void ratio
-RankFourTensor
+ElasticityTensorR4
 FiniteStrainCriticalStateMohrCoulomb::get_elasticity_tensor(const RankTwoTensor & stress, const Real void_ratio)
 {
   // set current mean effective stress
   Real p = -stress.trace()/3.0;
-  p = std::max(p, 5.0);
+  p = std::max(p, 10.0);
+  p = std::min(p, 1000.0);
 
   // set shear modulus and lambda
   Real shear_modulus = _c_g * (2.17 - void_ratio) * (2.17 - void_ratio) / (1.0 + void_ratio) * std::sqrt(_p_ref * p);
   Real lambda = 2.0 * shear_modulus * _poisson_ratio / (1.0 - 2 * _poisson_ratio);
+
+  // update shear modulus
+  _shear_modulus[_qp] = shear_modulus;
 
   // set elasticity vector
   std::vector<Real> tmp;
@@ -463,7 +479,7 @@ FiniteStrainCriticalStateMohrCoulomb::get_elasticity_tensor(const RankTwoTensor 
   tmp[0] = lambda;
   tmp[1] = shear_modulus;
 
-  RankFourTensor cijkl;
+  ElasticityTensorR4 cijkl;
   cijkl.fillFromInputVector(tmp, (RankFourTensor::FillMethod)(int)getParam<MooseEnum>("fill_method"));
 
   return cijkl;
